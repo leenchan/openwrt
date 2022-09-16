@@ -373,15 +373,15 @@
 		};
 		/* port1 */
 		gpio1 {
-			realtek,power-gpio;
+			realtek,power-gpio = <&rtk_misc_gpio 11 1 0>;
 		};
 		/* port2 */
 		gpio2 {
-			realtek,power-gpio = <&rtk_misc_gpio 18 1 0>;
+			realtek,power-gpio = <&rtk_misc_gpio 11 1 0>;
 		};
 		/* port3 */
 		gpio3 {
-			realtek,power-gpio = <&rtk_misc_gpio 20 1 0>;
+			realtek,power-gpio = <&rtk_misc_gpio 12 1 0>;
 		};
 
 		port0 {
