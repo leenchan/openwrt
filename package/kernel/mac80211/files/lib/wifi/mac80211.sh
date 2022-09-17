@@ -1,7 +1,13 @@
 #!/bin/sh
-. /lib/netifd/mac80211.sh
-
 append DRIVERS "mac80211"
+
+is_rtl_drv_phy() {
+	local phy=$1
+	local drvp=`readlink /sys/class/ieee80211/$phy/device/driver 2>/dev/null`
+	local drvprefix=`echo ${drvp##*/} | cut -c 1-4`
+	[ "$drvprefix" = "rtl8" ] && return 0
+	return 1
+}
 
 lookup_phy() {
 	[ -n "$phy" ] && {
@@ -11,8 +17,11 @@ lookup_phy() {
 	local devpath
 	config_get devpath "$device" path
 	[ -n "$devpath" ] && {
-		phy="$(mac80211_path_to_phy "$devpath")"
-		[ -n "$phy" ] && return
+		for phy in $(ls /sys/class/ieee80211 2>/dev/null); do
+			case "$(readlink -f /sys/class/ieee80211/$phy/device)" in
+				*$devpath) return;;
+			esac
+		done
 	}
 
 	local macaddr="$(config_get "$device" macaddr | tr 'A-Z' 'a-z')"
@@ -57,85 +66,6 @@ check_mac80211_device() {
 	[ "$phy" = "$dev" ] && found=1
 }
 
-
-__get_band_defaults() {
-	local phy="$1"
-
-	( iw phy "$phy" info; echo ) | awk '
-BEGIN {
-        bands = ""
-}
-
-($1 == "Band" || $1 == "") && band {
-        if (channel) {
-		mode="NOHT"
-		if (ht) mode="HT20"
-		if (vht && band != "1:") mode="VHT80"
-		if (he) mode="HE80"
-		if (he && band == "1:") mode="HE20"
-                sub("\\[", "", channel)
-                sub("\\]", "", channel)
-                bands = bands band channel ":" mode " "
-        }
-        band=""
-}
-
-$1 == "Band" {
-        band = $2
-        channel = ""
-	vht = ""
-	ht = ""
-	he = ""
-}
-
-$0 ~ "Capabilities:" {
-	ht=1
-}
-
-$0 ~ "VHT Capabilities" {
-	vht=1
-}
-
-$0 ~ "HE Iftypes" {
-	he=1
-}
-
-$1 == "*" && $3 == "MHz" && $0 !~ /disabled/ && band && !channel {
-        channel = $4
-}
-
-END {
-        print bands
-}'
-}
-
-get_band_defaults() {
-	local phy="$1"
-
-	for c in $(__get_band_defaults "$phy"); do
-		local band="${c%%:*}"
-		c="${c#*:}"
-		local chan="${c%%:*}"
-		c="${c#*:}"
-		local mode="${c%%:*}"
-
-		case "$band" in
-			1) band=2g;;
-			2) band=5g;;
-			3) band=60g;;
-			4) band=6g;;
-			*) band="";;
-		esac
-
-		[ -n "$band" ] || continue
-		[ -n "$mode_band" -a "$band" = "6g" ] && return
-
-		mode_band="$band"
-		channel="$chan"
-		htmode="$mode"
-	done
-}
-
 detect_mac80211() {
 	devidx=0
 	config_load wireless
@@ -154,15 +84,36 @@ detect_mac80211() {
 		config_foreach check_mac80211_device wifi-device
 		[ "$found" -gt 0 ] && continue
 
-		mode_band=""
-		channel=""
+		mode_band="g"
+		channel="11"
 		htmode=""
 		ht_capab=""
+		phy_opt=""
+		ap_name="OpenWrt"
 
-		get_band_defaults "$dev"
+		is_rtl_drv_phy $dev && append phy_opt "set wireless.radio${devidx}.phy=$dev$N"
 
-		path="$(mac80211_phy_to_path "$dev")"
+		iw phy "$dev" info | grep -q 'Capabilities:' && htmode=HT20 && ap_name="XJY_WR903L_2.4G"
+
+		iw phy "$dev" info | grep -q '5180 MHz' && {
+			mode_band="a"
+			channel="36"
+			iw phy "$dev" info | grep -q 'VHT Capabilities' && htmode="VHT80"
+			ap_name="XJY_WR903L_5G"
+		}
+
+		[ -n "$htmode" ] && ht_capab="set wireless.radio${devidx}.htmode=$htmode"
+
+		if [ -x /usr/bin/readlink -a -h /sys/class/ieee80211/${dev} ]; then
+			path="$(readlink -f /sys/class/ieee80211/${dev}/device)"
+		else
+			path=""
+		fi
 		if [ -n "$path" ]; then
+			path="${path##/sys/devices/}"
+			#case "$path" in
+			#	platform*/pci*) path="${path##platform/}";;
+			#esac
 			dev_id="set wireless.radio${devidx}.path='$path'"
 		else
 			dev_id="set wireless.radio${devidx}.macaddr=$(cat /sys/class/ieee80211/${dev}/macaddress)"
@@ -171,19 +122,22 @@ detect_mac80211() {
 		uci -q batch <<-EOF
 			set wireless.radio${devidx}=wifi-device
 			set wireless.radio${devidx}.type=mac80211
-			${dev_id}
+			${phy_opt}
 			set wireless.radio${devidx}.channel=${channel}
-			set wireless.radio${devidx}.band=${mode_band}
-			set wireless.radio${devidx}.htmode=$htmode
-			set wireless.radio${devidx}.disabled=1
+			set wireless.radio${devidx}.hwmode=11${mode_band}
+			${dev_id}
+			${ht_capab}
+			set wireless.radio${devidx}.country=CN
+			$([ "$htmode" = "HT20" ] && echo "set wireless.radio${devidx}.txpower=30")
 
 			set wireless.default_radio${devidx}=wifi-iface
 			set wireless.default_radio${devidx}.device=radio${devidx}
 			set wireless.default_radio${devidx}.network=lan
 			set wireless.default_radio${devidx}.mode=ap
-			set wireless.default_radio${devidx}.ssid=OpenWrt
+			set wireless.default_radio${devidx}.ssid=${ap_name}
+			set wireless.default_radio${devidx}.txbf=1
 			set wireless.default_radio${devidx}.encryption=none
-EOF
+		EOF
 		uci -q commit wireless
 
 		devidx=$(($devidx + 1))
