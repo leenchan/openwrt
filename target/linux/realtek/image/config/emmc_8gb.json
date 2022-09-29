@@ -21,7 +21,7 @@
     {"type":"KERNEL", "target":"0x3000000", "file":"rescue.Image"}
   ],
   "part": [
-    {"name":"rootfs", "mp":"/", "size":"0x8000000", "filetype":"img", "filesystem":"squashfs", "file":"rootfs.bin"},
+    {"name":"rootfs", "mp":"/", "size":"0x20000000", "filetype":"img", "filesystem":"squashfs", "file":"rootfs.bin"},
     {"name":"etc", "mp":"etc", "size":"-1", "filetype":"bin", "filesystem":"ext4", "file":"etc.bin"}
   ]
 }
