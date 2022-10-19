@@ -393,6 +393,19 @@ iptables extension for triggering a LED.
 
 endef
 
+define Package/iptables-mod-socket
+$(call Package/iptables/Module, +kmod-ipt-tproxy)
+  TITLE:=Socket match iptables extensions
+endef
+
+define Package/iptables-mod-socket/description
+Socket match iptables extensions.
+
+ Matches:
+  - socket
+
+endef
+
 define Package/iptables-mod-tproxy
 $(call Package/iptables/Module, +kmod-ipt-tproxy)
   TITLE:=Transparent proxy iptables extensions
@@ -678,6 +691,7 @@ $(eval $(call BuildPlugin,iptables-mod-ulog,$(IPT_ULOG-m)))
 $(eval $(call BuildPlugin,iptables-mod-hashlimit,$(IPT_HASHLIMIT-m)))
 $(eval $(call BuildPlugin,iptables-mod-rpfilter,$(IPT_RPFILTER-m)))
 $(eval $(call BuildPlugin,iptables-mod-led,$(IPT_LED-m)))
+$(eval $(call BuildPlugin,iptables-mod-socket))
 $(eval $(call BuildPlugin,iptables-mod-tproxy,$(IPT_TPROXY-m)))
 $(eval $(call BuildPlugin,iptables-mod-tee,$(IPT_TEE-m)))
 $(eval $(call BuildPlugin,iptables-mod-u32,$(IPT_U32-m)))
