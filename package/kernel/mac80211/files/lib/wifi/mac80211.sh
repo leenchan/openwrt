@@ -97,7 +97,7 @@ detect_mac80211() {
 
 		iw phy "$dev" info | grep -q '5180 MHz' && {
 			mode_band="a"
-			channel="36"
+			channel="149"
 			iw phy "$dev" info | grep -q 'VHT Capabilities' && htmode="VHT80"
 			ap_name="XJY_WR903L_5G"
 		}
