@@ -52,9 +52,15 @@ define Build/Prepare
 	$(TAR) -C $(PKG_BUILD_DIR) -xzf $(DL_DIR)/$(RTK_UBOOT_BIN)
 endef
 
+define Build/Compile
+	$(call Build/Compile/Default,) || true
+endef
+
 define Build/InstallDev
 	$(INSTALL_DIR) $(STAGING_DIR_IMAGE)
-	$(CP) $(PKG_BUILD_DIR)/u-boot.bin $(STAGING_DIR_IMAGE)/u-boot.bin
+	[ -f $(PKG_BUILD_DIR)/u-boot.bin ] && \
+		$(CP) $(PKG_BUILD_DIR)/u-boot.bin $(STAGING_DIR_IMAGE)/u-boot.bin || \
+		$(CP) ./files/u-boot.bin $(STAGING_DIR_IMAGE)/u-boot.bin
 endef
 
 define Package/u-boot/install
