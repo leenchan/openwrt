@@ -189,7 +189,7 @@
         };
 
 	irda@98007400 {
-		status = "okay";
+		status = "disabled";
 
 		irda_rx0 {
 			irrx-protocol = "NEC";
@@ -269,11 +269,12 @@
 	};
 
 	power-management@0  {
-		wakeup-gpio-list = <&rtk_iso_gpio 30 0 0>, /* power key */
-				<&rtk_iso_gpio 32 0 0>,    /* bt wake */
-				<&rtk_iso_gpio 33 0 0>;    /* wifi wake */
-		wakeup-gpio-enable = <1>, <0>, <0>;
-		wakeup-gpio-activity =<1>, <1>, <1>;
+		suspend-mode = <0>;
+		wakeup-gpio-list = <&rtk_iso_gpio 14 0 0>,
+			<&rtk_iso_gpio 4 0 0>, /* power key */
+			<&rtk_iso_gpio 33 0 0>;
+		wakeup-gpio-enable = <1>, <1>, <0>;
+		wakeup-gpio-activity =<1>, <0>, <1>;
 		status = "okay";
 	};
 
@@ -299,14 +300,14 @@
 
 	rtk_usb_power_manager@0 {
 		status = "okay";
-        };
+	};
 
 	sata_phy: sata_phy@9803FF60 {
 		status = "okay";
 	};
 
-        ahci_sata: sata@9803F000 {
-		status = "okay";
+	ahci_sata: sata@9803F000 {
+		status = "disabled";
 	};
 
 	rtk-leds {
@@ -317,7 +318,11 @@
 		status = "okay";
 	};
 
+	spi-lcd {
+		compatible = "grtek,spi-lcd";
+	};
+
 	fan0: gpio-fan@0 {
-		status = "okay";
+		status = "disabled";
 	};
 };

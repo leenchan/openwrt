@@ -38,7 +38,7 @@
 			<&dc_fan_sensor_pins>,
 			<&smart_card_pins>;
 		status = "disabled";
-        };
+		};
 
 	rtk_misc_gpio@9801b100 {
 		compatible = "realtek,rtk-misc-gpio-irq-mux";
@@ -139,7 +139,7 @@
 	hdcptx@9800D000 {
 		compatible = "realtek,rtk129x-hdcptx";
 		status = "disabled";
-        };
+		};
 
 	hdmirx@98034000 {
 		compatible = "Realtek,rtk-mipi-top";
@@ -234,7 +234,7 @@
 				system-power-controller;
 			};
 		};
-        };
+		};
 
 	i2c_1: i2c@0x98007C00 {
 		compatible = "realtek,rtk-i2c";
@@ -251,12 +251,12 @@
 		status = "disabled";
 	};
 
-        i2c_4: i2c@0x9801BA00 {
+		i2c_4: i2c@0x9801BA00 {
 		compatible = "realtek,rtk-i2c";
 		status = "disabled";
 	};
 
-        i2c_5: i2c@0x9801BB00 {
+		i2c_5: i2c@0x9801BB00 {
 		compatible = "realtek,rtk-i2c";
 		status = "disabled";
 	};
@@ -284,7 +284,7 @@
 		pwm_3 {
 			enable = <0>;
 		};
-        };
+		};
 
 	rtk-lsadc@0x98012800 {
 		compatible = "Realtek,rtk-lsadc";
@@ -314,7 +314,7 @@
 		gpios = <&rtk_iso_gpio 24 1 0>; /* bt power */
 	};
 
-        power-management@0  {
+	power-management@0  {
 		compatible = "Realtek,power-management";
 		wakeup-gpio-list = <&rtk_iso_gpio 30 0 0>; /* power key */
 		wakeup-gpio-enable = <1>;
@@ -401,12 +401,12 @@
 	sata_phy: sata_phy@9803FF60 {
 		compatible = "Realtek,rtk-sata-phy";
 		status = "disabled";
-        };
+	};
 
 	ahci_sata: sata@9803F000 {
 		compatible = "Realtek,ahci-sata";
 		status = "disabled";
-        };
+	};
 
 	rtk-leds {
 		compatible = "Realtek,rtk-leds";
@@ -419,13 +419,13 @@
 
 		/* green */
 		led2 = <&rtk_misc_gpio 97 1 0>;
-                led2-trigger = "heartbeat";
-                led2-active-low = <1>;
+				led2-trigger = "heartbeat";
+				led2-active-low = <1>;
 
 		/* blue */
 		led3 = <&rtk_misc_gpio 98 1 0>;
-                led3-trigger = "default-on";
-                led3-active-low = <1>;
+				led3-trigger = "default-on";
+				led3-active-low = <1>;
 
 		status = "disabled";
 	};
@@ -436,8 +436,14 @@
 
 		power-button {
 			label = "Power Button";
-			gpios = <&rtk_iso_gpio 30 0 1>;
+			gpios = <&rtk_iso_gpio 4 0 1>;
 			linux,code = <116>;
+		};
+
+		reset-button {
+			label = "Reset Button";
+			gpios = <&rtk_iso_gpio 5 0 1>;
+			linux,code = <408>;
 		};
 	};
 
